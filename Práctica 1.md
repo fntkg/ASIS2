@@ -1,5 +1,5 @@
 # Práctica 1
-> [color=#3c71b3] [name= Germán Garcés - 757024]
+> Germán Garcés - 757024
 ## Resumen
 Esta práctica trataba de la creación de 2 máquinas virtuales, con openBSD como sistema operativo. Una de ellas que actuará como router ipv6 y la otra para comprobar el correcto funcionamiento del encaminador.
 ## Arquitectura
