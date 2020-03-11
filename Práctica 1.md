@@ -1,7 +1,7 @@
 # Práctica 1
 > Germán Garcés - 757024
 ## Resumen
-Esta práctica trataba de la creación de 2 máquinas virtuales, con openBSD como sistema operativo. Una de ellas que actuará como router ipv6 y la otra para comprobar el correcto funcionamiento del encaminador.
+Puesta en marcha de 2 VMs con OpenBSD sobre entorno libvirt, en red y configuración deuno de ellos como router en IPv6.
 ## Arquitectura
 
 `central.cps.unizar.es`: encaminador por defecto de `orouter7`.
