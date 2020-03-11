@@ -90,7 +90,9 @@ Y por último, para probar el correcto funcionamiento del router se realizó `pi
 ## Problemas encontrados y su solución
 
 No había conectividad desde un ordenador del laboratorio a `orouter7`, faltaba por añadir el encaminador por defecto al router.
+
 A la máquina `o7ff2` no se le asignaba una ipv6, esto ocurría porque el router virtual y esta máquina virtual se encontraban en distintas máquinas físicas. La solución fue mover `o7ff2` a la misma máquina en la que se encontraba el router.
+
 El último problema fue que el router no encaminaba correctamente ya que desde `orouter7` si se podía hacer `ping` a `o7ff2` pero desde la máquina del laboratorio no se podía hacer. Este problema se ha solucionado solo, mientras se trataba de ver donde se perdían los paquetes (`traceroute`) el router comenzó a funcionar bien sin haber cambiado nada. Se piensa que no funcionaba debido a la lentitud a la hora de aplicar cambios en las máquinas virtuales debido a la conexión por vía wifi de la universidad ya que se estaba trabajando a través de un ordenador portátil.
 
 ## Anexo
