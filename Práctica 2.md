@@ -2,6 +2,7 @@
 - Configuracíon server secundario
 - Meter `router1` al servicio de nombres
 - Probar la resolución de nombres con los servidores DNS de `google.com`
+- Explicar **Configuración servicio NSD**
 - Unbound y NTP
 # Práctica 2
 > Germán Garcés - 757024
