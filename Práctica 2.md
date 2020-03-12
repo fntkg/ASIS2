@@ -1,17 +1,25 @@
-# SIN TERMINAR AÚN, PUEDE ESTAR TODO MAL
+**Falta  por hacer**:
+- Configuracíon server secundario
+- Meter `router1` al servicio de nombres
+- Probar la resolución de nombres con los servidores DNS de `google.com`
+- Unbound y NTP
 # Práctica 2
 > Germán Garcés - 757024
 ## Resumen
 Puesta en marcha de servicios distribuidos básicos, NTP y DNS, con la configuración de red y VMs necesarias.
+## Arquitectura de elementos relevantes
+**Novedad** respecto a la 1a práctica es que `orouter7` tiene un nombre en el servicio de nombres, `router1`. También se han añadido dos máquinas  `o7ff3` y `o7ff4` con direcciones ipv6 `2001:470:736b:7ff::3` y `2001:470:736b:7ff::4` respectivamente. Estas máquinas van a ser los servidores con autoridad primario y secundario y tendrán de nombre `ns1` y `ns2`.
+![](https://i.imgur.com/3Q0SnMn.png)
+
 ## Comprehensión   de   elementos   significativos   de   la   práctica 
 ### Puesta en marcha servicio DNS y NTP
 #### Clientes DNS
 
 Para indicar a  todas las máquinas quienes son sus servidores de nombres, en la ruta `/etc/resolv.conf` añadir las siguientes líneas:
-```shell
+```
 search 7.ff.es.eu.org
 nameserver 2001:470:736b:7ff::3 ; ns1
-nameserver 2001:470:736b:7ff::4 : ns2
+nameserver 2001:470:736b:7ff::4 ; ns2
 ```
 Basicamente lo que hacemos es indicar a las VM quienes son los servidores de nombres. En este caso, la dirección `2001:470:4736b:7ff::3` es el servidor primario o master y la dirección `2001:470:736b:7ff::4` es el servidor secundario o esclavo.
 La línea `search W.ff.es.eu.org` lo que hace es autocompletar el nombre de los dominios cuando no se indica un dominio en concreto. Por ejemplo si hiciesemos `ssh ns1`, se autocompletaría a `ssh ns1.7.ff.es.eu.org`.
@@ -28,7 +36,6 @@ El archivo `/var/nsd/etc/nsd.conf` ha quedado así:
 ```
 server:
         hide-version: yes
-        ip-address: 2001:470:736b:7ff::2
         database: "/var/nsd/db/nsd.db"
         username: _nsd
         verbosity: 1
@@ -112,3 +119,9 @@ $ORIGIN 0.0.0.0.0.0.0.0.0.0.0.0.0.0.0.f.f.7.0.b.6.3.7.0.7.4.0.1.0.0.2.ip6.arpa.
 ```
 > Para comprobar que no existieran error sintácticos se usó `nsd-checkzone`.
 - `@` indica el nombre de la zona, en este caso `7.0.b.6.3.7.0.7.4.0.1.0.0.2.ip6.arpa`
+
+### Configuración servidor con autoridad secundario
+> En la maquina `2001:470:736b::4`.
+## Problemas encontrados
+
+- Se escribió la opción `ip-address: 2001:470:736b:7ff::2` sin entender que era, cuando se descubrió que era para escuchar en una interfaz se eliminó dicha línea del archivo de configuración de `nsd`.
