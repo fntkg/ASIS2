@@ -51,7 +51,7 @@ remote-control:
         control-enable: yes
         control-interface: /var/run/nsd.sock
         control-port: 8952
-        server-key-file: "/var/nsd/etc/nsd-server.key"
+        server-key-file: "/var/nsd/etc/nsd_server.key"
         server-cert-file: "/var/nsd/etc/nsd_server.pem"
         control-key-file: "/var/nsd/etc/nsd_control.key"
         control-cert-file: "/var/nsd/etc/nsd_control.pem"
