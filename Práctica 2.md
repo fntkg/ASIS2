@@ -111,12 +111,11 @@ Para la resolución inversa se ha creado otro archivo `7.ff.es.eu.org.inverso` y
                                 1200       ; Retry (20 minutos)
                                 3600000    ; Expire (40+ dias)
                                 3600 )     ; Minimum (1 hora)
+
 ; Resolucion inversa
 
-$ORIGIN 0.0.0.0.0.0.0.0.0.0.0.0.0.0.0.f.f.7.0.b.6.3.7.0.7.4.0.1.0.0.2.ip6.arpa.
-
-3       IN      PTR     ns1.7.ff.es.eu.org.
-4       IN      PTR     ns2.7.ff.es.eu.org. 
+3.0.0.0.0.0.0.0.0.0.0.0.0.0.0.0.f.f       IN      PTR     ns1.7.ff.es.eu.org.
+4.0.0.0.0.0.0.0.0.0.0.0.0.0.0.0.f.f       IN      PTR     ns2.7.ff.es.eu.org.
 ```
 > Para comprobar que no existieran error sintácticos se usó `nsd-checkzone`.
 - `@` indica el nombre de la zona, en este caso `7.0.b.6.3.7.0.7.4.0.1.0.0.2.ip6.arpa`
