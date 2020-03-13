@@ -1,5 +1,4 @@
 **Falta  por hacer**:
-- Configuracíon server secundario
 - Meter `router1` al servicio de nombres
 - Probar la resolución de nombres con los servidores DNS de `google.com`
 - Explicar [Configuración servicio DNS](#configuración-servicio-nsd)
