@@ -77,7 +77,7 @@ En la ruta `/var/nsd/zones/master` se ha creado un nuevo archivo de nombre `7.ff
 ; Start of authority record for 7.ff.es.eu.org
 $ORIGIN 7.ff.es.eu.org.
 
-7.ff.es.eu.org. IN      SOA     ns1.7.ff.es.eu.org.     757024.unizar.com. (
+7.ff.es.eu.org. IN      SOA     ns1.7.ff.es.eu.org.     757024.unizar.es. (
                                 2009070200 ; Serial number
                                 10800      ; Refresh (3 horas)
                                 1200       ; Retry (20 minutos)
@@ -105,7 +105,7 @@ o7ff4   IN      CNAME   ns2
 
 Para la resolución inversa se ha creado otro archivo `7.ff.es.eu.org.inversa` y se ha escrito lo siguiente:
 ```
-@       IN      SOA     ns1.7.ff.es.eu.org.     757024.unizar.com. (
+@       IN      SOA     ns1.7.ff.es.eu.org.     757024.unizar.es. (
                                 2009070200 ; Serial number
                                 10800      ; Refresh (3 horas)
                                 1200       ; Retry (20 minutos)
