@@ -1,7 +1,6 @@
 **Falta  por hacer**:
 - Meter `router1` al servicio de nombres
-- Probar la resolución de nombres con los servidores DNS de `google.com`
-> No funciona la resolucion inversa, no se como sincronizar master y slave
+- Sincronizar master y slave
 - Explicar [Configuración servicio DNS](#configuración-servicio-nsd)
 - Unbound y NTP
 # Práctica 2
