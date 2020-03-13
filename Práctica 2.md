@@ -64,7 +64,7 @@ zone:
 
 zone:
         name: "7.0.b.6.3.7.0.7.4.0.1.0.0.2.ip6.arpa"
-        zonefile: "slave/7.ff.es.eu.org.inverso"
+        zonefile: "master/7.ff.es.eu.org.inverso"
         notify: 2001:470:736b:7ff::4 NOKEY
         provide-xfr: 2001:470:736b:7ff::4 NOKEY
 
@@ -122,6 +122,18 @@ Para la resolución inversa se ha creado otro archivo `7.ff.es.eu.org.inverso` y
 
 ### Configuración servidor con autoridad secundario
 > En la maquina `2001:470:736b::4`.
+## Pruebas realizadas
+Para comprobar el correcto funcionamiento de los servidores dns se probó a hacer una query a los servidores de google de resolucion directa `dig -6 @2001:4860:4860::8888 AAAA ns1.7.ff.es.eu.org` y se observó que devolvía la respuesta correcta:
+```
+;; ANSWER SECTION:
+ns1.7.ff.es.eu.org.     317     IN      AAAA    2001:470:736b:7ff::3
+
+```
+Y se utilizó el comando `dig -6 @2001:4860:4860::8888 -x 2001:470:736b:7ff::3` para probar la resolución inversa, respuesta obtenida:
+```
+;; ANSWER SECTION:
+3.0.0.0.0.0.0.0.0.0.0.0.0.0.0.0.f.f.7.0.b.6.3.7.0.7.4.0.1.0.0.2.ip6.arpa. 3599 IN PTR ns1.7.ff.es.eu.org.
+```
 ## Problemas encontrados
 
 - Se escribió la opción `ip-address: 2001:470:736b:7ff::2` sin entender que era, cuando se descubrió que era para escuchar en una interfaz se eliminó dicha línea del archivo de configuración de `nsd`.
