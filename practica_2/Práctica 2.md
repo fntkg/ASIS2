@@ -102,7 +102,7 @@ o7ff4   IN      CNAME   ns2
 - La tercera entrada indica cual es la dirección ip de estos servidores
 - El apartado `CNAME` permite usar nicknames, en este caso le indicamos que si se usan los nombres de las VM, estos se transformen en el nombre que le corresponde para el servidor de nombres.
 
-Para la resolución inversa se ha creado otro archivo `7.ff.es.eu.org.inverso` y se ha escrito lo siguiente:
+Para la resolución inversa se ha creado otro archivo `7.0.b.6.3.7.0.7.4.0.1.0.0.2.ip6.arpa` y se ha escrito lo siguiente:
 ```
 @       IN      SOA     ns1.7.ff.es.eu.org.     757024.unizar.es. (
                                 2009070200 ; Serial number
