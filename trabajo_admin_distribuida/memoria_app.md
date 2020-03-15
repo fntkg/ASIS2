@@ -18,5 +18,14 @@ Cualquier otro comando o no poner algo en `COMANDO` aparecerá un **error**
 Se ha intentado hacer una aplicación que sea capaz de añadir opciones de manera sencilla. Esto se ha hecho creando para cada opcion (en estos momentos `[ p | c COMANDO]`) una función. De tal manera que el programa principal solo lee la función, comprueba que el archivo `~/.u/hosts` existe y ya deriva a la función correspondiente.
 
 Para el comando `p` se ha usado la biblioteca `net/ping`.
+```ruby
+Net::Ping::External.new(host, port, timeout)
+```
+> Comandos principales usados
 
 Para el comando `c COMANDO` se ha usado la biblioteca `net/ssh` y se ha **reutilizado**  `net/ping` para comprobar si una maquina esta viva o no y evitar así errores de ssh.
+```ruby
+Net::SSH.start(host, 'username', password: "password")
+ssh.exec!(comando)
+```
+> Comandos principales usados
