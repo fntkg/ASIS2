@@ -5,6 +5,8 @@ Como usar:
 Los ficheros de configuración se encuentran en `~/.u`
 > El conjunto de maquinas se especifica en `~/.u/hosts`
 
+### Uso
+
 Hacer ping al puerto `22` de un conjunto de maquinas:
 `./u.rb p`
  
