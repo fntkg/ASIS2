@@ -1,0 +1,1 @@
+# Aplicación administración distribuida
