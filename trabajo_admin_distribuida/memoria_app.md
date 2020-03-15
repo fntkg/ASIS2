@@ -34,4 +34,5 @@ ssh.exec!(comando)
 
 **Ojo** Para poder usar el directorio `~/.u` se ha utilizado `ENV['HOME'] + '/.u'`.
 > `ENV['HOME']`  devuelve variable de entorno `$HOME` de cada usuario.
+
 > Para ver las posibles variables de entorno: `env`.
