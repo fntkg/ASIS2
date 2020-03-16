@@ -1,6 +1,5 @@
 **Falta  por hacer**:Creacion servidor recursivo con cache Unbound
-- Asegurarse de que [Unbound](#creacion-servidor-recursivo-con-cache-unbound) esta bien hecho
-- NTP
+- [NTP](#configuracion-ntp)
 # Práctica 2
 > Germán Garcés - 757024
 ## Resumen
@@ -14,7 +13,7 @@ Puesta en marcha de servicios distribuidos básicos, NTP y DNS, con la configura
 ### Puesta en marcha servicio DNS y NTP
 #### Clientes DNS
 
-Para indicar a  todas las máquinas quienes son sus servidores de nombres, en la ruta `/etc/resolv.conf` añadir las siguientes líneas:
+Para indicar a  todas las máquinas quienes son sus **servidores de nombres**, en la ruta `/etc/resolv.conf` añadir las siguientes líneas:
 ```
 search 7.ff.es.eu.org
 nameserver 2001:470:736b:7ff::3 ; ns1
@@ -27,6 +26,13 @@ Y para poner en marcha el demonio `nsd`, en `/etc/rc.conf.local` se ha añadido 
 ```
 nsd_flags=""
 ```
+Para comunicar a las máquinas que son clientes de un **servidor NTP**, se ha escrito lo siguiente en `/etc/ntp.conf`
+```shell
+server prometeo.cps.unizar.es
+server ntp.unizar.es
+```
+y se ha reiniciado el demonio ntpd con `rcctl restart ntpd`
+
 #### Configuración servidor con autoridad primario
 > En la maquina `o7ff3`.
 ##### Configuración servicio NSD
@@ -190,7 +196,8 @@ forward-zone:
         forward-first: yes                      # try direct if forwarder fails
 
 ```
-
+### Configuración NTP
+En la máquina `o7ff2` se añadió `listen on *` en el fichero `/etc/ntp.conf` para que escuchará por todos sus interfaces.
 ## Pruebas realizadas
 - Para comprobar el correcto funcionamiento de los servidores dns se probó a hacer una query a los servidores de google de resolucion directa `dig -6 @2001:4860:4860::8888 AAAA ns1.7.ff.es.eu.org` y se observó que devolvía la respuesta correcta:
 ```
