@@ -27,7 +27,7 @@ Y para poner en marcha el demonio `nsd`, en `/etc/rc.conf.local` se ha añadido 
 nsd_flags=""
 ```
 #### Configuración servidor con autoridad primario
-> En la maquina `2001:470:736b::3`.
+> En la maquina `o7ff3`.
 ##### Configuración servicio NSD
 
 El archivo `/var/nsd/etc/nsd.conf` ha quedado así:
@@ -122,7 +122,7 @@ Para la resolución inversa se ha creado otro archivo `7.0.b.6.3.7.0.7.4.0.1.0.0
 - `@` indica el nombre de la zona, en este caso `7.0.b.6.3.7.0.7.4.0.1.0.0.2.ip6.arpa`
 
 #### Configuración servidor con autoridad secundario
-> En la maquina `2001:470:736b::4`.
+> En la maquina `o7ff4`.
 El archivo `/var/nsd/etc/nsd.conf` ha quedado así:
 ```shell
 server:
