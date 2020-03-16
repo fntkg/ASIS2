@@ -7,6 +7,7 @@
 Puesta en marcha de servicios distribuidos básicos, NTP y DNS, con la configuración de red y VMs necesarias.
 ## Arquitectura de elementos relevantes
 **Novedad** respecto a la 1a práctica es que `orouter7` tiene un nombre en el servicio de nombres, `router1`. También se han añadido dos máquinas  `o7ff3` y `o7ff4` con direcciones ipv6 `2001:470:736b:7ff::3` y `2001:470:736b:7ff::4` respectivamente. Estas máquinas van a ser los servidores con autoridad primario y secundario y tendrán de nombre `ns1` y `ns2`.
+
 ![](https://i.imgur.com/3Q0SnMn.png)
 
 ## Comprehensión   de   elementos   significativos   de   la   práctica 
