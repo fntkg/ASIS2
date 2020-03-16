@@ -1,5 +1,5 @@
 **Falta  por hacer**:Creacion servidor recursivo con cache Unbound
-- [NTP](#configuracion-ntp)
+- [NTP](#configuración-ntp)
 # Práctica 2
 > Germán Garcés - 757024
 ## Resumen
