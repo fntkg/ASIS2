@@ -1,6 +1,6 @@
-**Falta  por hacer**:
-- Explicar [Configuración servicio DNS](#configuración-servicio-nsd)
-- Unbound y NTP
+**Falta  por hacer**:Creacion servidor recursivo con cache Unbound
+- Asegurarse de que [Unbound](#creacion-servidor-recursivo-con-cache-unbound) esta bien hecho
+- NTP
 # Práctica 2
 > Germán Garcés - 757024
 ## Resumen
@@ -121,7 +121,7 @@ Para la resolución inversa se ha creado otro archivo `7.0.b.6.3.7.0.7.4.0.1.0.0
 > Para comprobar que no existieran error sintácticos se usó `nsd-checkzone`.
 - `@` indica el nombre de la zona, en este caso `7.0.b.6.3.7.0.7.4.0.1.0.0.2.ip6.arpa`
 
-### Configuración servidor con autoridad secundario
+#### Configuración servidor con autoridad secundario
 > En la maquina `2001:470:736b::4`.
 El archivo `/var/nsd/etc/nsd.conf` ha quedado así:
 ```shell
@@ -159,8 +159,39 @@ zone:
         request-xfr: AXFR 2001:470:736b:7ff::3 NOKEY
 
 ```
+#### Creacion servidor recursivo con cache Unbound
+> En la maquina `o7ff2`
+
+Para la configuración de este servidor tan solo se ha editado el fichero `/var/unbound/etc/unbound.conf` y se ha escrito lo siguiente:
+```
+server:
+        interface: ::0
+        do-ip6: yes
+        
+        access-control: 2001:470:736b:7ff::/64 allow
+        access-control: ::1 allow
+
+        hide-identity: yes
+        hide-version: yes
+
+        # Use TCP for "forward-zone" requests. Useful if you are making
+        # DNS requests over an SSH port forwarding.
+        #
+        tcp-upstream: yes
+
+remote-control:
+        control-enable: yes
+        control-use-cert: no
+
+forward-zone:
+        name: "."                               # use for ALL queries
+        forward-addr: 2001:470:20::2            # he.net v6
+        forward-first: yes                      # try direct if forwarder fails
+
+```
+
 ## Pruebas realizadas
-Para comprobar el correcto funcionamiento de los servidores dns se probó a hacer una query a los servidores de google de resolucion directa `dig -6 @2001:4860:4860::8888 AAAA ns1.7.ff.es.eu.org` y se observó que devolvía la respuesta correcta:
+- Para comprobar el correcto funcionamiento de los servidores dns se probó a hacer una query a los servidores de google de resolucion directa `dig -6 @2001:4860:4860::8888 AAAA ns1.7.ff.es.eu.org` y se observó que devolvía la respuesta correcta:
 ```
 ;; ANSWER SECTION:
 ns1.7.ff.es.eu.org.     317     IN      AAAA    2001:470:736b:7ff::3
@@ -171,7 +202,9 @@ Y se utilizó el comando `dig -6 @2001:4860:4860::8888 -x 2001:470:736b:7ff::3` 
 ;; ANSWER SECTION:
 3.0.0.0.0.0.0.0.0.0.0.0.0.0.0.0.f.f.7.0.b.6.3.7.0.7.4.0.1.0.0.2.ip6.arpa. 3599 IN PTR ns1.7.ff.es.eu.org.
 ```
-Para probar el funcionamiento del servidor secundario se realizaron los mismos comandos pero pidiendole la respuesta al servidor esclavo `@2001:470:736b:7ff::2`
+- Para probar el funcionamiento del servidor secundario se realizaron los mismos comandos pero pidiendole la respuesta al servidor esclavo `@2001:470:736b:7ff::2`
+
+- Para comprobar el servidor unbound simplemente se repitieron los comandos anteriores prestando especial atencińo a los tiempos de respuesta de cada petición. Se vió que la primera petición tardaba siempre mas de 100ms (cuando la query no era interna) pero que las siguientes peticiones iguales, tardaban tan solo [30-50]ms
 ## Problemas encontrados
 
 - Se escribió la opción `ip-address: 2001:470:736b:7ff::2` sin entender que era, cuando se descubrió que era para escuchar en una interfaz se eliminó dicha línea del archivo de configuración de `nsd`.
