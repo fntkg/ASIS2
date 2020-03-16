@@ -1,6 +1,4 @@
 **Falta  por hacer**:
-- Meter `router1` al servicio de nombres
-- Sincronizar master y slave
 - Explicar [Configuración servicio DNS](#configuración-servicio-nsd)
 - Unbound y NTP
 # Práctica 2
@@ -33,7 +31,7 @@ nsd_flags=""
 ##### Configuración servicio NSD
 
 El archivo `/var/nsd/etc/nsd.conf` ha quedado así:
-```
+```shell
 server:
         hide-version: yes
         database: "/var/nsd/db/nsd.db"
@@ -89,11 +87,14 @@ $ORIGIN 7.ff.es.eu.org.
 
 ns1     IN      AAAA    2001:470:736b:7ff::3
 ns2     IN      AAAA    2001:470:736b:7ff::4
+router1 IN      AAAA    2001:470:736b:7ff::1
+
 
 ; CNAME
 
 o7ff3   IN      CNAME   ns1
 o7ff4   IN      CNAME   ns2 
+orouter7        IN      CNAME   router1
 ```
 > Para comprobar que no existieran error sintácticos se usó `nsd-checkzone`.
 - En primer lugar, en la variable `$ORIGIN` se guarda el valor del dominio (`7.ff.es.eu.org`) para evitar escribir de más.
@@ -115,12 +116,49 @@ Para la resolución inversa se ha creado otro archivo `7.0.b.6.3.7.0.7.4.0.1.0.0
 
 3.0.0.0.0.0.0.0.0.0.0.0.0.0.0.0.f.f       IN      PTR     ns1.7.ff.es.eu.org.
 4.0.0.0.0.0.0.0.0.0.0.0.0.0.0.0.f.f       IN      PTR     ns2.7.ff.es.eu.org.
+1.0.0.0.0.0.0.0.0.0.0.0.0.0.0.0.f.f       IN      PTR     router1.7.ff.es.eu.org.
 ```
 > Para comprobar que no existieran error sintácticos se usó `nsd-checkzone`.
 - `@` indica el nombre de la zona, en este caso `7.0.b.6.3.7.0.7.4.0.1.0.0.2.ip6.arpa`
 
 ### Configuración servidor con autoridad secundario
 > En la maquina `2001:470:736b::4`.
+El archivo `/var/nsd/etc/nsd.conf` ha quedado así:
+```shell
+server:
+        hide-version: yes
+        verbosity: 1
+        database: "" # disable database
+        username: _nsd
+        port: 53
+        server-count: 1
+        ip6-only: yes
+        zonesdir: "/var/nsd/zones"
+        logfile: "/var/log/nsd.log"
+        pidfile: "/var/nsd/run/nsd.pid"
+
+remote-control:
+        control-enable: yes
+        control-interface: /var/run/nsd.sock
+        control-port: 8952
+        server-key-file: "/var/nsd/etc/nsd_server.key"
+        server-cert-file: "/var/nsd/etc/nsd_server.pem"
+        control-key-file: "/var/nsd/etc/nsd_control.key"
+        control-cert-file: "/var/nsd/etc/nsd_control.pem"
+
+zone:
+        name: "7.ff.es.eu.org"
+        zonefile: "slave/7.ff.es.eu.org"
+        allow-notify: 2001:470:736b:7ff::3 NOKEY
+        request-xfr: AXFR 2001:470:736b:7ff::3 NOKEY
+
+zone:
+        name: "7.0.b.6.3.7.0.7.4.0.1.0.0.2.ip6.arpa"
+        zonefile: "slave/7.ff.es.eu.org.inversa"
+        allow-notify: 2001:470:736b:7ff::3 NOKEY
+        request-xfr: AXFR 2001:470:736b:7ff::3 NOKEY
+
+```
 ## Pruebas realizadas
 Para comprobar el correcto funcionamiento de los servidores dns se probó a hacer una query a los servidores de google de resolucion directa `dig -6 @2001:4860:4860::8888 AAAA ns1.7.ff.es.eu.org` y se observó que devolvía la respuesta correcta:
 ```
