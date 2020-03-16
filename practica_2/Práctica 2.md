@@ -171,6 +171,7 @@ Y se utilizó el comando `dig -6 @2001:4860:4860::8888 -x 2001:470:736b:7ff::3` 
 ;; ANSWER SECTION:
 3.0.0.0.0.0.0.0.0.0.0.0.0.0.0.0.f.f.7.0.b.6.3.7.0.7.4.0.1.0.0.2.ip6.arpa. 3599 IN PTR ns1.7.ff.es.eu.org.
 ```
+Para probar el funcionamiento del servidor secundario se realizaron los mismos comandos pero pidiendole la respuesta al servidor esclavo `@2001:470:736b:7ff::2`
 ## Problemas encontrados
 
 - Se escribió la opción `ip-address: 2001:470:736b:7ff::2` sin entender que era, cuando se descubrió que era para escuchar en una interfaz se eliminó dicha línea del archivo de configuración de `nsd`.
