@@ -212,7 +212,8 @@ Y se utilizó el comando `dig -6 @2001:4860:4860::8888 -x 2001:470:736b:7ff::3` 
 ```
 - Para probar el funcionamiento del servidor secundario se realizaron los mismos comandos pero pidiendole la respuesta al servidor esclavo `@2001:470:736b:7ff::2`
 
-- Para comprobar el servidor unbound simplemente se repitieron los comandos anteriores prestando especial atencińo a los tiempos de respuesta de cada petición. Se vió que la primera petición tardaba siempre mas de 100ms (cuando la query no era interna) pero que las siguientes peticiones iguales, tardaban tan solo [30-50]ms
+- Para comprobar el servidor unbound simplemente se repitieron los comandos anteriores prestando especial atencińo a los tiempos de respuesta de cada petición. Se vió que la primera petición tardaba siempre mas de 100ms (cuando la query no era interna) pero que las siguientes peticiones iguales, tardaban tan solo [30-50]ms.
+ También se uso el comando `unbound-host -6 hostname` para hacer querys que usase el servidor unbound, respuesta obtenida `ns1.7.ff.es.eu.org has IPv6 address 2001:470:736b:7ff::3`
 ## Problemas encontrados
 
 - Se escribió la opción `ip-address: 2001:470:736b:7ff::2` sin entender que era, cuando se descubrió que era para escuchar en una interfaz se eliminó dicha línea del archivo de configuración de `nsd`.
