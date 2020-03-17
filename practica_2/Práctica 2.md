@@ -1,5 +1,3 @@
-**Falta  por hacer**:Creacion servidor recursivo con cache Unbound
-- [NTP](#configuración-ntp)
 # Práctica 2
 > Germán Garcés - 757024
 ## Resumen
@@ -95,12 +93,15 @@ $ORIGIN 7.ff.es.eu.org.
 ns1     IN      AAAA    2001:470:736b:7ff::3
 ns2     IN      AAAA    2001:470:736b:7ff::4
 router1 IN      AAAA    2001:470:736b:7ff::1
+ntp1    IN      AAAA    2001:470:736b:7ff::2
+otro_servidor IN      AAAA    2001:470:736b:7ff::f
 
 
 ; CNAME
 
 o7ff3   IN      CNAME   ns1
-o7ff4   IN      CNAME   ns2 
+o7ff4   IN      CNAME   ns2
+o7ff2   IN      CNAME   ntp1
 orouter7        IN      CNAME   router1
 ```
 > Para comprobar que no existieran error sintácticos se usó `nsd-checkzone`.
@@ -124,6 +125,8 @@ Para la resolución inversa se ha creado otro archivo `7.0.b.6.3.7.0.7.4.0.1.0.0
 3.0.0.0.0.0.0.0.0.0.0.0.0.0.0.0.f.f       IN      PTR     ns1.7.ff.es.eu.org.
 4.0.0.0.0.0.0.0.0.0.0.0.0.0.0.0.f.f       IN      PTR     ns2.7.ff.es.eu.org.
 1.0.0.0.0.0.0.0.0.0.0.0.0.0.0.0.f.f       IN      PTR     router1.7.ff.es.eu.org.
+2.0.0.0.0.0.0.0.0.0.0.0.0.0.0.0.f.f       IN      PTR     ntp1.7.ff.es.eu.org.
+f.0.0.0.0.0.0.0.0.0.0.0.0.0.0.0.f.f       IN      PTR     otro_servirdor.7.ff.es.eu.org.
 ```
 > Para comprobar que no existieran error sintácticos se usó `nsd-checkzone`.
 - `@` indica el nombre de la zona, en este caso `7.0.b.6.3.7.0.7.4.0.1.0.0.2.ip6.arpa`
@@ -169,6 +172,8 @@ zone:
 #### Creacion servidor recursivo con cache Unbound
 > En la maquina `o7ff2`
 
+ Se activó el demonio de `unbound` escribiendo `unbound_flags=""` en el fichero `/etc/rc.conf.local`
+
 Para la configuración de este servidor tan solo se ha editado el fichero `/var/unbound/etc/unbound.conf` y se ha escrito lo siguiente:
 ```
 server:
@@ -195,8 +200,15 @@ forward-zone:
         forward-addr: 2001:470:20::2            # he.net v6
         forward-first: yes                      # try direct if forwarder fails
 
+stub-zone:
+        name: "7.ff.es.eu.org"
+        stub-addr: 2001:470:736b:7ff::3  
+
+stub-zone:
+        name: "7.0.b.6.3.7.0.7.4.0.1.0.0.2.ip6.arpa"
+        stub-addr: 2001:470:736b:7ff::3
 ```
-### Configuración NTP
+### Configuración servicio de tiempo NTP
 En la máquina `o7ff2` se añadió `listen on *` en el fichero `/etc/ntp.conf` para que escuchará por todos sus interfaces.
 ## Pruebas realizadas
 - Para comprobar el correcto funcionamiento de los servidores dns se probó a hacer una query a los servidores de google de resolucion directa `dig -6 @2001:4860:4860::8888 AAAA ns1.7.ff.es.eu.org` y se observó que devolvía la respuesta correcta:
@@ -215,5 +227,5 @@ Y se utilizó el comando `dig -6 @2001:4860:4860::8888 -x 2001:470:736b:7ff::3` 
 - Para comprobar el servidor unbound simplemente se repitieron los comandos anteriores prestando especial atencińo a los tiempos de respuesta de cada petición. Se vió que la primera petición tardaba siempre mas de 100ms (cuando la query no era interna) pero que las siguientes peticiones iguales, tardaban tan solo [30-50]ms.
  También se uso el comando `unbound-host -6 hostname` para hacer querys que usase el servidor unbound, respuesta obtenida `ns1.7.ff.es.eu.org has IPv6 address 2001:470:736b:7ff::3`
 ## Problemas encontrados
-
-- Se escribió la opción `ip-address: 2001:470:736b:7ff::2` sin entender que era, cuando se descubrió que era para escuchar en una interfaz se eliminó dicha línea del archivo de configuración de `nsd`.
+- Al configurar `nsd`, no se conseguía obtener ninguna resolución, se había puesto `ip-address: 2001:470:736b:7ff::2` sin entender lo que era, tras eso la opción de escuchar por un interfaz fue retirada
+- No se conseguía hacer ping a google, a las 2 horas me dí cuenta de que estaba haciendo `ping google.com` y no `ping6 2001:4860:4860::8888` como debería hacer.
