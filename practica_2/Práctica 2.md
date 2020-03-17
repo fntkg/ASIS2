@@ -1,3 +1,4 @@
+- Modificar clientes DNS
 # Práctica 2
 > Germán Garcés - 757024
 ## Resumen
