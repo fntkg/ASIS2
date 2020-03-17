@@ -66,7 +66,7 @@ zone:
 
 zone:
         name: "7.0.b.6.3.7.0.7.4.0.1.0.0.2.ip6.arpa"
-        zonefile: "master/7.ff.es.eu.org.inverso"
+        zonefile: "master/7.0.b.6.3.7.0.7.4.0.1.0.0.2.ip6.arpa"
         notify: 2001:470:736b:7ff::4 NOKEY
         provide-xfr: 2001:470:736b:7ff::4 NOKEY
 
