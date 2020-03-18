@@ -1,4 +1,3 @@
-- Modificar clientes DNS
 # Práctica 2
 > Germán Garcés - 757024
 ## Resumen
@@ -29,10 +28,10 @@ Y para poner en marcha el demonio `nsd`, en `/etc/rc.conf.local` se ha añadido 
 ```
 nsd_flags=""
 ```
-Para comunicar a las máquinas que son clientes de un **servidor NTP**, se ha escrito lo siguiente en `/etc/ntp.conf`
+Para comunicar a las máquinas que son clientes de un **servidor NTP**, se ha escrito lo siguiente en `/etc/ntpd.conf`
 ```shell
-server prometeo.cps.unizar.es
-server ntp.unizar.es
+server 2001:470:0:50::2
+server 2001:470:0:2c8::2
 ```
 y se ha reiniciado el demonio ntpd con `rcctl restart ntpd`
 
@@ -214,7 +213,15 @@ stub-zone:
         stub-addr: 2001:470:736b:7ff::3
 ```
 ### Configuración servicio de tiempo NTP
-En la máquina `o7ff2` se añadió `listen on *` en el fichero `/etc/ntp.conf` para que escuchará por todos sus interfaces.
+En la máquina `o7ff2`, en el fichero `/etc/ntpd.conf` se añadieron las lineas:
+```shell
+server 2001:470:0:50::2
+server 2001:470:0:2c8::2
+listen on *
+sensor *
+constraints from "https://www.google.com"
+```
+y se añadió en `/etc/rc.conf.local` la línea: `ntpd_flags="-s"` para que el demonio de ntp establezca el tiempo al iniciarse.
 ## Pruebas realizadas
 - Para comprobar el correcto funcionamiento de los servidores dns se probó a hacer una query a los servidores de google de resolucion directa `dig -6 @2001:4860:4860::8888 AAAA ns1.7.ff.es.eu.org` y se observó que devolvía la respuesta correcta:
 ```
@@ -231,6 +238,9 @@ Y se utilizó el comando `dig -6 @2001:4860:4860::8888 -x 2001:470:736b:7ff::3` 
 
 - Para comprobar el servidor unbound simplemente se repitieron los comandos anteriores prestando especial atencińo a los tiempos de respuesta de cada petición. Se vió que la primera petición tardaba siempre mas de 100ms (cuando la query no era interna) pero que las siguientes peticiones iguales, tardaban tan solo [30-50]ms.
  También se uso el comando `unbound-host -6 hostname` para hacer querys que usase el servidor unbound, respuesta obtenida `ns1.7.ff.es.eu.org has IPv6 address 2001:470:736b:7ff::3`
+ 
+ - Para comprobar el servicio ntp, desde central se usó el comando: `nptdate -q 2001:470:736b:7ff::2`
 ## Problemas encontrados
 - Al configurar `nsd`, no se conseguía obtener ninguna resolución, se había puesto `ip-address: 2001:470:736b:7ff::2` sin entender lo que era, tras eso la opción de escuchar por un interfaz fue retirada
 - No se conseguía hacer ping a google, a las 2 horas me dí cuenta de que estaba haciendo `ping google.com` y no `ping6 2001:4860:4860::8888` como debería hacer.
+- Las máquinas virtuales dejaron de arrancar correctamente, se resolvió volviendo a un punto anterior obtenido de las copias de seguridad.
