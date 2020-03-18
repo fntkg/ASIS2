@@ -19,6 +19,10 @@ nameserver 2001:470:736b:7ff::3 ; ns1
 nameserver 2001:470:736b:7ff::4 ; ns2
 ```
 Basicamente lo que hacemos es indicar a las VM quienes son los servidores de nombres. En este caso, la dirección `2001:470:4736b:7ff::3` es el servidor primario o master y la dirección `2001:470:736b:7ff::4` es el servidor secundario o esclavo.
+Tras la configuración del servidor `unbound`, se quitaron ambos `nameserver` y se añadió la línea:
+```
+nameserver 2001:470:736b:7ff::2 #Nuevo servidor al que hacer preguntas
+```
 La línea `search W.ff.es.eu.org` lo que hace es autocompletar el nombre de los dominios cuando no se indica un dominio en concreto. Por ejemplo si hiciesemos `ssh ns1`, se autocompletaría a `ssh ns1.7.ff.es.eu.org`.
 
 Y para poner en marcha el demonio `nsd`, en `/etc/rc.conf.local` se ha añadido la siguiente línea:
