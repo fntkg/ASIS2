@@ -69,28 +69,34 @@ Pasos seguidos:
 
 Añadir a `/etc/fstab/` la línea:
 ```shell
-nfsnis1.7.ff.es.eu.org:/srv/nfs4/home    /home/a757024/    nfs    auto,nofail,noatime,nolock,tcp,actimeo=1800 0 0
+nfsnis1.7.ff.es.eu.org:/srv/nfs4/home    /home/a757024/    nfs    defaults 0 0
 ```
-Opciones:
-- `auto` se encarga de montar el `nfs` en el arranque del sistema.
-- `nofail` ignora el montaje si el `nfs` no esta disponible, esto evita errores.
-- No actualiza el inode con el tiempo de acceso, para aumentar prestaciones.
-- `nolock` permite que las aplicaciones puedan bloquear archivos pero solo contra otras aplicaciones en el mismo cliente.
-- `tcp` establece el protocolo de comunicación.
-- `actimeo=1800` pone las variables `acregmin`, `acregmax`, `acdirmin`, `acdirmax` al valor asignado, estas variables gestionan tiempos de peticiones y respuestas de `nfs`.
+
+### Montaje servidor LDAP
+> En `nfsnis1`
+
+
+### Montaje cliente LDAP
+> En `cliente1`
 
 ## Pruebas realizadas
 
 ### Pruebas para NFS
 > Desde la máquina `cliente1`
 
-Crear un **con privilegios de administrador** fichero de nombre `general.test` y comprobar su usuario y su grupo con `ls -l`.
+Crear **con privilegios de administrador** un fichero de nombre `general.test` y comprobar su usuario y su grupo con `ls -l`.
 Se comprueba que la salida es:
 ```shell
 -rw-r--r-- 1 nobody nogroup 0 Mar 30 19:34 general.test
 ```
 
 Esta salida es correcta ya que NFS por defecto cambia los ficheros con propietario `root` a ficheros con propietario `nobody` y grupo `nogroup`.
+
+Para comprobar el correcto montaje en el arranque de la máquina se ha reiniciado el sistema.
+
+### Pruebas para LDAP
+**Nota** Para entender mejor el resultado de los comandos sobre un `DIT`, entender que es un arbol en el que cada nodo contiene un `dn` que es el identificador de cada nodo y esta formado por su `rdn` y el `dn` del padre.
+Aparte del `dn`, cada nodo contiene un conjunto de atributos.
 
 ## Problemas encontrados
 - No salía ninguna petición de las máquinas ubuntu, faltaba la opcion `dns-nameserver` en el fichero `/etc/network/interfaces`
