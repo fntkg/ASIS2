@@ -41,58 +41,34 @@ iface ens3.798 inet6 static
 ```
 > La dirección `address` es la adecuada para cada máquina
 2. Para crear correctamente la red virtual 798, se ha ejecutado `vconfig add ens3 798`.
-3. Y por ultimo, para indicar cual es el servidor de nombres, en la ruta `/etc/resolvconf/resolv.conf.d/base` se ha añadido `nameserver 2001:470:736b:7ff::2` y se ha reiniciado el servicio con `resolvconf -u`.
 
 ### Creación servidor NFS
-> En `nfsnis1`
 
-Pasos seguidos:
-1. Instalación `nfs-kernel-server` usando `apt-get install`.
-2. Creación directorio `/srv/nfs4/home` que es el que se va a compartir.
-3. En el fichero `/etc/idmapd.conf` añadida la línea `Domain = 7.ff.es.eu.org`
-4. En el fichero `/etc/exports` se ha añadió `/srv/nfs4/home/cliente1.7.ff.es.eu.org(rw,sync,no_subtree_check)` para indicar que directorio exportar y a quién.
-
-    - `rw` permite leer y escribir en los ficheros.
-    - `sync` fuerza a NFS a escribir los cambios en el disco antes de responder, para evitar inconsistencias.
-    - `no_subtree_check` hace que el host no checkee si el archivo sigue disponible en el directorio exportado para cada petición. Activar la opción podría dar problemas al renombrar archivos que el cliente tiene abiertos.
-    - **Opcional** `no_root_squash` Por defecto, nfs traduce cada petición de `root` a un usuario sin privilegios en el servidor. Esta opción desactiva dicho comportamiento por defecto.
-5. Reiniciar con `systemctl restart nfs-kernel-server`
+- http://somebooks.es/10-2-como-instalar-nfs/
+- http://somebooks.es/10-2-como-instalar-nfs/
 
 ### Creación cliente NFS
 > En `cliente1`
 
-1. Instalación `nfs-common`
-2. En el fichero `/etc/idmapd.conf` añadida la línea `Domain = 7.ff.es.eu.org`
-3. Ejecutar `mount nfsnis1.7.ff.es.eu.org:/srv/nfs4/home /home/a757024/` para montar el sistema de fichero que nos proporciona `nfsnis1`.
-
-#### Montaje al arrancar la máquina
-
-Añadir a `/etc/fstab/` la línea:
-```shell
-nfsnis1.7.ff.es.eu.org:/srv/nfs4/home    /home/a757024/    nfs    defaults 0 0
-```
+- http://somebooks.es/10-4-acceder-a-la-carpeta-compartida-con-nfs-desde-un-cliente-con-ubuntu/
 
 ### Montaje servidor LDAP
 > En `nfsnis1`
 
+- http://somebooks.es/12-7-instalar-y-configurar-openldap-en-el-servidor-ubuntu/
+- http://somebooks.es/12-11-perfiles-moviles-de-usuario-usando-nfs-y-ldap/
+
 
 ### Montaje cliente LDAP
 > En `cliente1`
+
+- http://somebooks.es/12-9-configurar-un-equipo-cliente-con-ubuntu-para-autenticarse-en-el-servidor-openldap/
 
 ## Pruebas realizadas
 
 ### Pruebas para NFS
 > Desde la máquina `cliente1`
 
-Crear **con privilegios de administrador** un fichero de nombre `general.test` y comprobar su usuario y su grupo con `ls -l`.
-Se comprueba que la salida es:
-```shell
--rw-r--r-- 1 nobody nogroup 0 Mar 30 19:34 general.test
-```
-
-Esta salida es correcta ya que NFS por defecto cambia los ficheros con propietario `root` a ficheros con propietario `nobody` y grupo `nogroup`.
-
-Para comprobar el correcto montaje en el arranque de la máquina se ha reiniciado el sistema.
 
 ### Pruebas para LDAP
 **Nota** Para entender mejor el resultado de los comandos sobre un `DIT`, entender que es un arbol en el que cada nodo contiene un `dn` que es el identificador de cada nodo y esta formado por su `rdn` y el `dn` del padre.
