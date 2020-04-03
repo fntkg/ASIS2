@@ -153,9 +153,6 @@ iface ens3.798 inet6 static
 
     Para añadirlo al `DIT` (`Directory Information Tree`) ejecutar `ldapadd -x -D cn=admin,dc=7,d=ff,dc=es,dc=eu,dc=org -W -f fichero.ldif`.
 
-- http://somebooks.es/12-11-perfiles-moviles-de-usuario-usando-nfs-y-ldap/
-
-
 ### Montaje cliente LDAP
 > En `cliente1`
 
@@ -207,9 +204,6 @@ iface ens3.798 inet6 static
     ```
     password    [success=1 user_unknown=ignore default=die] pam_ldap.so
     ```
-    
-
-- http://somebooks.es/12-9-configurar-un-equipo-cliente-con-ubuntu-para-autenticarse-en-el-servidor-openldap/
 
 ## Pruebas realizadas
 
