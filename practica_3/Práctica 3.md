@@ -1,7 +1,18 @@
 # Práctica 3
 > Germán Garcés - 757024
 
+## Índice
+- [Resumen](#Resumen)
+- [Arquitectura elementos relevantes](#Arquitectura-de-elementos-relevantes)
+- [Comprehensión de elementos significativos de la práctica](#Comprehensión-de-elementos-significativos-de-la-práctica)
+- [Pruebas realizadas](#Pruebas-realizadas)
+- [Problemas encontrados](#Problemas-encontrados)
+- [Anexo](#Anexo)
+
 ## Resumen
+
+Gestionar cuentas de usuario y directorios distribuidos mediante LDAP y NFS  sobre Ubuntu, SIN Kerberos.
+
 ## Arquitectura de elementos relevantes
 ![](https://i.imgur.com/63TJvAa.png)
 
@@ -11,7 +22,7 @@ Explicación de los elementos del sistema:
 - La máquina `ns1` posee el servidor con autoridad primario (o master) junto a una base de datos de las zonas de la red.
 - La máquina `ns2` posee el servidor con autoridad secundario (o esclavo) el cual se encarga de mantener una copia de la base de datos de nombres.
 - La máquina nfsnis1 contiene el servicio `NFS` el cual se encarga de disponer para los clientes un sistema de ficheros y el servicio `LDAP` que se encarga de disponer cuentas de usuario para las máquinas cliente.
-- La máquina cliente1 se va a encargar de usar los diferentes servicios disponibles en la red.
+- La máquina cliente1 se va a encargar de usar los diferentes servicios disponibles en la red. Esta ḿaquina tambien se ha usado como réplica del servicio `LDAP`.
 - En la red virtual `799` se encuentran todos los servicios disponibles para los clientes en la red `798`.
 ## Comprehensión de elementos significativos de la práctica
 
@@ -225,6 +236,100 @@ iface ens3.798 inet6 static
     ```shell
     sudo ldapmodify -Y EXTERNAL -H ldapi:/// -f certinfo.ldif
     ```
+#### Montaje replicación con TLS
+
+1. Crear fichero `provider_sync.ldif':
+    ```
+    # Add indexes to the frontend db.
+    dn: olcDatabase={1}mdb,cn=config
+    changetype: modify
+    add: olcDbIndex
+    olcDbIndex: entryCSN eq
+    -
+    add: olcDbIndex
+    olcDbIndex: entryUUID eq
+
+    #Load the syncprov and accesslog modules.
+    dn: cn=module{0},cn=config
+    changetype: modify
+    add: olcModuleLoad
+    olcModuleLoad: syncprov
+    -
+    add: olcModuleLoad
+    olcModuleLoad: accesslog
+
+    # Accesslog database definitions
+    dn: olcDatabase={2}mdb,cn=config
+    objectClass: olcDatabaseConfig
+    objectClass: olcMdbConfig
+    olcDatabase: {2}mdb
+    olcDbDirectory: /var/lib/ldap/accesslog
+    olcSuffix: cn=accesslog
+    olcRootDN: cn=admin,dc=7,dc=ff,dc=es,dc=eu,dc=org
+    olcDbIndex: default eq
+    olcDbIndex: entryCSN,objectClass,reqEnd,reqResult,reqStart
+
+    # Accesslog db syncprov.
+    dn: olcOverlay=syncprov,olcDatabase={2}mdb,cn=config
+    changetype: add
+    objectClass: olcOverlayConfig
+    objectClass: olcSyncProvConfig
+    olcOverlay: syncprov
+    olcSpNoPresent: TRUE
+    olcSpReloadHint: TRUE
+
+    # syncrepl Provider for primary db
+    dn: olcOverlay=syncprov,olcDatabase={1}mdb,cn=config
+    changetype: add
+    objectClass: olcOverlayConfig
+    objectClass: olcSyncProvConfig
+    olcOverlay: syncprov
+    olcSpNoPresent: TRUE
+
+    # accesslog overlay definitions for primary db
+    dn: olcOverlay=accesslog,olcDatabase={1}mdb,cn=config
+    objectClass: olcOverlayConfig
+    objectClass: olcAccessLogConfig
+    olcOverlay: accesslog
+    olcAccessLogDB: cn=accesslog
+    olcAccessLogOps: writes
+    olcAccessLogSuccess: TRUE
+    # scan the accesslog DB every day, and purge entries older than 7 days
+    olcAccessLogPurge: 07+00:00 01+00:00
+    ```
+2. Crear directorio: `sudo -u openldap mkdir /var/lib/ldap/acesslog` y añadir el nuevo contenido: `sudo ldapadd -Q -Y EXTERNAL -H ldapi:/// -f provider_sync.ldif`.
+3. Crear un directorio y crear la clave privada del consumidor:
+    ```shell
+    mkdir cliente1-ssl
+    cd client1-ssl
+    sudo certtool --generate-privkey \
+    --bits 1024 \
+    --outfile cliente1_slapd_key.pem
+    ```
+4. Crear fichero `cliente1.info`:
+    ```
+    organization = nfsnis1
+    cn = cliente1.7.ff.es.eu.org
+    tls_www_server
+    encryption_key
+    signing_key
+    expiration_days = 3650
+    ```
+5. Crear el certificado del consumidor
+    ```shell
+    sudo certtool --generate-certificate \
+    --load-privkey cliente1_slapd_key.pem \
+    --load-ca-certificate /etc/ssl/certs/cacert.pem \
+    --load-ca-privkey /etc/ssl/private/cakey.pem \
+    --template cliente1.info \
+    --outfile cliente1_slapd_cert.pem
+    ```
+6. Crear copia del certificado y transferir `cliente1-ssl/` al consumidor:
+ ```shell
+ cp /etc/ssl/certs/cacert.pem .
+ cd ..
+ scp -r cliente1-ssl a757024@cliente1.7.ff.es.eu.org:
+ ```
 
 ### Montaje cliente LDAP
 > En `cliente1`
@@ -245,7 +350,7 @@ iface ens3.798 inet6 static
     ```
 3. Editar fichero `/etc/ldap/ldap.conf` para que quede algo asi:
     ```
-    BASE dc=7,d=ff,dc=es,dc=eu,dc=org
+    BASE dc=7,dc=ff,dc=es,dc=eu,dc=org
     URI ldap://nfsnis1.7.ff.es.eu.org
     SIZELIMIT 0
     TIMELIMIT 0
@@ -277,6 +382,80 @@ iface ens3.798 inet6 static
     ```
     password    [success=1 user_unknown=ignore default=die] pam_ldap.so
     ```
+#### Montaje replicación y TLS en el cliente:
+1. Instalar `slapd` y dejar la configuración como en el servidor.
+2. Crear fichero `consumer_sync.ldif`:
+    ```
+    dn: cn=module{0},cn=config
+    changetype: modify
+    add: olcModuleLoad
+    olcModuleLoad: syncprov
+
+    dn: olcDatabase={1}mdb,cn=config
+    changetype: modify
+    add: olcDbIndex
+    olcDbIndex: entryUUID eq
+    -
+    add: olcSyncRepl
+    olcSyncRepl: rid=0 
+    provider=ldap://nfsnis1.7.ff.es.eu.org 
+    bindmethod=simple 
+    binddn="cn=admin,dc=7,dc=ff,dc=es,dc=eu,dc=org"
+    credentials=Egdxwa 
+    searchbase="dc=7,dc=ff,dc=es,dc=eu,dc=org"
+    logbase="cn=accesslog"
+    logfilter="(&(objectClass=auditWriteObject)(reqResult=0))"                   schemachecking=on
+    type=refreshAndPersist
+    retry="60 +"
+    syncdata=accesslog
+    -
+    add: olcUpdateRef
+    olcUpdateRef: ldap://ldap01.example.com
+    ```
+3. Añadir el nuevo contenido: `sudo ldapadd -Q -Y EXTERNAL -H ldapi:/// -f consumer_sync.ldif`.
+4. Configurar autentificacion TLS:
+    ```shell
+    sudo apt install ssl-cert
+    sudo gpasswd -a openldap ssl-cert
+    sudo cp cliente1_slapd_cert.pem cacert.pem /etc/ssl/certs
+    sudo cp cliente1_slapd_key.pem /etc/ssl/private
+    sudo chgrp openldap /etc/ssl/private/cliente1_slapd_key.pem
+    sudo chmod 0640 /etc/ssl/private/cliente1_slapd_key.pem
+    sudo systemctl restart slapd.service
+    ```
+5. Crear el fichero `/etc/ssl/certinfo.ldif` con el siguiente contenido:
+    ```
+    dn: cn=config
+    add: olcTLSCACertificateFile
+    olcTLSCACertificateFile: /etc/ssl/certs/cacert.pem
+    -
+    add: olcTLSCertificateKeyFile
+    olcTLSCertificateKeyFile: /etc/ssl/private/cliente1_slapd_key.pem
+    -
+    add: olcTLSCertificateFile
+    olcTLSCertificateFile: /etc/ssl/certs/cliente1_slapd_cert.pem
+    ```
+6. Configurar la bbdd de slapd con `sudo ldapmodify -Y EXTERNAL -H ldapi:/// -f certinfo.ldif`
+7. Configurar TLS para replicación desde el lado del consumidor, para ello, crear fichero `consumer_sync_tls.ldif` con el siguiente contenido:
+    ```
+    dn: olcDatabase={1}mdb,cn=config
+    replace: olcSyncRepl
+    olcSyncRepl: rid=0
+    provider=ldap://nfsnis1.7.ff.es.eu.org
+    bindmethod=simple
+    binddn="cn=admin,dc=7,dc=ff,dc=es,dc=eu,dc=org"
+    credentials=Egdxwa
+    searchbase="dc=7,dc=ff,dc=es,dc=eu,dc=org"
+    logbase="cn=accesslog"
+    logfilter="(&(objectClass=auditWriteObject)(reqResult=0))"
+    schemachecking=on 
+    type=refreshAndPersist
+    retry="60 +"
+    syncdata=accesslog
+    starttls=critical tls_reqcert=demand
+    ```
+    Implementar los cambios con `sudo ldapmodify -Y EXTERNAL -H ldapi:/// -f consumer_sync_tls.ldif`.
+    Reiniciar `slapd` `sudo systemctl restart slapd.service`.
 
 ## Pruebas realizadas
 
@@ -309,7 +488,14 @@ Aparte del `dn`, cada nodo contiene un conjunto de atributos.
     Creating directory /srv/nfs4/home/german
     ```
     Así vemos que NFS y LDAP funcionan conjuntamente como deben.
+### Pruebas replicación
 
+- `ldapsearch -z1 -LLLQY EXTERNAL -H ldapi:/// -s base -b dc=7,d=ff,dc=es,dc=eu,dc=org contextCSN`, salida esperada:
+    ```
+    dn: c=7,d=ff,dc=es,dc=eu,dc=org
+    contextCSN: 20120201193408.178454Z#000000#000#000000
+    ```
+    Tanto en cliente como en servidor tiene que salir el mismo resultado.
 ## Problemas encontrados
 - No salía ninguna petición de las máquinas ubuntu, faltaba la opcion `dns-nameserver` en el fichero `/etc/network/interfaces`
 - Las peticiones al servidor `Unbound` no funcionaban desde el cliente. Se cambió la configuración del `unbound` para que aceptara peticiones de la red de los clientes.
