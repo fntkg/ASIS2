@@ -153,6 +153,79 @@ iface ens3.798 inet6 static
 
     Para añadirlo al `DIT` (`Directory Information Tree`) ejecutar `ldapadd -x -D cn=admin,dc=7,d=ff,dc=es,dc=eu,dc=org -W -f fichero.ldif`.
 
+**Con todo esto, el servidor LDAP ya funciona correctamente**
+
+**Ahora se va a usar TLS y replicación para que este funcione de manera mas segura**
+
+#### Montaje TLS
+
+1. Instalar `gnutls-bin` y `ssl-cert`.
+2. Crear una clave privada para la autoridad certificadora:
+    ```shell
+    sudo sh -c "certtool --generate-privkey > /etc/ssl/private/cakey.pem"
+    ```
+3. Crear `/etc/ssl/ca.info` para definir la CA:
+    ```
+    cn = nfsnis1
+    ca
+    cert_signing_key
+    ```
+4. Crear el certificado de CA auto firmado:
+    ```shell
+    sudo certtool --generate-self-signed \
+    --load-privkey /etc/ssl/private/cakey.pem \ 
+    --template /etc/ssl/ca.info \
+    --outfile /etc/ssl/certs/cacert.pem
+    ```
+5. Crear una clave privada para el servidor:
+    ```shell
+    sudo certtool --generate-privkey \
+    --bits 1024 \
+    --outfile /etc/ssl/private/nfsnis1_slapd_key.pem
+    ```
+6. Crear el fichero `/etc/ssl/nfsni1.info`:
+    ```
+    organization = nfsnis1
+    cn = nfsnis1.example.com
+    tls_www_server
+    encryption_key
+    signing_key
+    expiration_days = 3650
+    ```
+    > 10 años de caducidad para el certificado.
+7. Crear el certificado del servidor:
+    ```shell
+    sudo certtool --generate-certificate \
+    --load-privkey /etc/ssl/private/nfsnis1_slapd_key.pem \
+    --load-ca-certificate /etc/ssl/certs/cacert.pem \
+    --load-ca-privkey /etc/ssl/private/cakey.pem \
+    --template /etc/ssl/nfsnis1.info \
+    --outfile /etc/ssl/certs/nfsnis1_slapd_cert.pem
+    ```
+8. Ajustar permisos y membresías:
+    ```shell
+    sudo chgrp openldap /etc/ssl/private/nfsnis1_slapd_key.pem
+    sudo chmod 0640 /etc/ssl/private/nfsnis1_slapd_key.pem
+    sudo gpasswd -a openldap ssl-cert
+    ```
+9. Reiniciar `slapd` con el comando `sudo systemctl restart sladp.service`.
+10. Crear el fichero `certinfo.ldif`:
+    ```
+    dn: cn=config
+    add: olcTLSCACertificateFile
+    olcTLSCACertificateFile: /etc/ssl/certs/cacert.pem
+    -
+    add: olcTLSCertificateKeyFile
+    olcTLSCertificateKeyFile: /etc/ssl/private/nfsnis1_slapd_key.pem
+    -
+    add: olcTLSCertificateFile
+    olcTLSCertificateFile: /etc/ssl/certs/nfsnis1_slapd_cert.pem
+    ```
+11. Usar `ldapmodify` para contar a `slapd` sobre TLS:
+    ```shell
+    sudo ldapmodify -Y EXTERNAL -H ldapi:/// -f certinfo.ldif
+    ```
+
 ### Montaje cliente LDAP
 > En `cliente1`
 
@@ -242,3 +315,98 @@ Aparte del `dn`, cada nodo contiene un conjunto de atributos.
 - Las peticiones al servidor `Unbound` no funcionaban desde el cliente. Se cambió la configuración del `unbound` para que aceptara peticiones de la red de los clientes.
 - No se automontaba el sistema de fichero `NFS` en el arranque del cliente, era por una opción mal escrita.
 - El comando `nss_updatedb ldap` daba error, estaba mal escrita la URI en el fichero `/etc/ldap.conf`.
+- Al modificar la base de datos de `LDAP` para añadir `TLS`, daba un error, esto era por el orden al modificar los elementos.
+
+## Anexo
+
+### Script empleado para encender las máquinas de los laboratorios:
+No es muy interactivo pero hace su funcion, pasar como primer y unico parametro el numero de terminales conectadas a la máqina 206 que se quieren abrir.
+```shell
+#!/bin/bash
+
+func(){
+echo ">>Sending ping to  $1..."
+ping=$(ping -c 1 $1 | grep bytes | wc -l)
+if [ "$ping" -gt 1 ];then
+        echo ">>Host up"
+        echo ">>Opening ssh connection..."
+        ssh a757024@$1 "./asis.sh"
+        gnome-terminal  -- bash  -c  "ssh -X a757024@$1" &> /dev/null
+else
+        echo ">>Host down"
+        echo ">>Establish connection with "central"..."
+        if [ "$2" -eq 8 ] ; then
+                mac=00:10:18:80:67:84
+        elif [ "$2" -eq 7 ] ; then
+                mac=00:10:18:80:73:38
+        elif [ "$2" -eq 5 ]; then
+                mac=00:10:18:80:67:94
+        elif [ "$2" -eq 6 ]; then
+                mac=00:10:18:80:67:f4
+        fi
+        ssh a757024@central.cps.unizar.es /usr/local/etc/wakeonlan $mac
+        for x in {1..65} ; do
+                sleep 1
+                printf .
+        done | pv -pt -i0.2 -s65 -w 80 > /dev/null
+        func $1 $2
+fi
+}
+
+i=0
+while [ "$i" -lt "$1" ]
+do
+        func 155.210.154.206 6
+        i=$(( $i + 1 ))
+done
+
+exit 0
+```
+
+### Script empleado para encender las maquinas virtuales
+No requiere de ninguna interaccion.
+```shell
+#/bin/bash
+
+virsh -c qemu:///system define /misc/alumnos/as2/as22019/a757024/orouter7.xml
+virsh -c qemu:///system define /misc/alumnos/as2/as22019/a757024/o7ff2.xml
+virsh -c qemu:///system define /misc/alumnos/as2/as22019/a757024/o7ff3.xml
+virsh -c qemu:///system define /misc/alumnos/as2/as22019/a757024/o7ff4.xml
+virsh -c qemu:///system define /misc/alumnos/as2/as22019/a757024/o7ff5.xml
+virsh -c qemu:///system define /misc/alumnos/as2/as22019/a757024/o7fe6.xml
+
+virsh -c qemu:///system start orouter7
+virsh -c qemu:///system start o7ff2
+virsh -c qemu:///system start o7ff3
+virsh -c qemu:///system start o7ff4
+virsh -c qemu:///system start o7ff5
+virsh -c qemu:///system start o7fe6
+```
+
+### Script empleado para apagar lás maquinas
+**Error** al apagar las maquinas ubuntu, el terminal se queda colgado (ya sea a mano o desde el script),por lo que esas maquinas se apagan de forma manual, no desde el script.
+```shell
+#/bin/bash
+
+ssh a757024@2001:470:736b:7ff::4 'doas shutdown -h now'
+ssh a757024@2001:470:736b:7ff::3 'doas shutdown -h now'
+ssh a757024@2001:470:736b:7ff::2 'doas shutdown -h now'
+ssh a757024@2001:470:736b:7ff::1 'doas shutdown -h now'
+
+for i in {1..4}; do
+    sleep 1 # Para dar tiempo a que se apagen correctamente.
+	echo "Apagando maquinas #$i"
+done
+
+virsh -c qemu:///system destroy o7ff4
+virsh -c qemu:///system destroy o7ff3
+virsh -c qemu:///system destroy o7ff2
+virsh -c qemu:///system destroy orouter7
+
+virsh -c qemu:///system undefine orouter7
+virsh -c qemu:///system undefine o7ff2
+virsh -c qemu:///system undefine o7ff3
+virsh -c qemu:///system undefine o7ff4
+virsh -c qemu:///system undefine o7ff5
+virsh -c qemu:///system undefine o7fe6
+```
