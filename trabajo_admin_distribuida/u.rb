@@ -6,6 +6,7 @@
 
 require 'net/ping'
 require 'net/ssh'
+require 'net/scp'
 
 #####################################
 #        Funciones auxiliares       #
@@ -36,7 +37,38 @@ def ssh(direccion, command)
   end
 end
 
+
+def aplicar_manifiesto(direccion, manifiesto)
+  puts ">> Aplicar manifiesto ##{manifiesto} en #{direccion}"
+  puts
+  # Copiar archivo #[manifiesto] en maquina remota
+  output = ""
+  check = Net::Ping::External.new(direccion, 22, 0.1)
+  if check.ping?
+    # Comprobar que no existe ya el fichero
+    Net::SSH.start(direccion, 'a757024', password: "Egdxwa") do |ssh|
+      output = ssh.exec!("ls | grep #{manifiesto}")
+    end
+    if output == ""
+      # Si aun no se ha creado el manifiesto, crearlo
+      Net::SCP.upload!(direccion, "a757024",
+          "#{ENV['HOME']}/.u/manifiestos/#{manifiesto}", "/home/a757024",
+            :ssh => { :password => "Egdxwa" })
+    end
+  else
+    puts direccion + ": falla"
+    puts
+  end
+end
+
+def check_manifiesto(direccion, manifiesto)
+  ssh(direccion, "rm /home/a757024/#{manifiesto}")
+end
+
+
 # @who = a quien mandar el comando @comando
+# @comando = puede ser "p", "s" o "c"
+# @command = comando pasado cuando @comando es "s" O manifiesto cuando @comando es "c"
 def who(who, comando, command)
   if who == "all"
     # Recorrer todas las maquinas
@@ -48,6 +80,10 @@ def who(who, comando, command)
         ping(direccion)
       elsif comando == "s"
         ssh(direccion, command)
+      elsif comando == "c"
+        aplicar_manifiesto(direccion, command)
+      elsif comando == "c_clean"
+        check_manifiesto(direccion, command)
       end
     end
   else
@@ -73,6 +109,10 @@ def who(who, comando, command)
                 ping(direccion)
               elsif comando == "s"
                 ssh(direccion, command)
+              elsif comando == "c"
+                aplicar_manifiesto(direccion, command)
+              elsif comando == "c_clean"
+                check_manifiesto(direccion, command)
               end
             end
             # Si hay llamadas a otros grupos
@@ -81,10 +121,14 @@ def who(who, comando, command)
       end
     else
       # Caso de que sea una máquina en concreto
-      if (comando == "p")
+      if comando == "p"
         ping(who)
       elsif comando == "s"
         ssh(who, command)
+      elsif comando == "c"
+        aplicar_manifiesto(who, command)
+      elsif comando == "c_clean"
+        check_manifiesto(who, command)
       end
     end
   end
@@ -96,9 +140,18 @@ def p(maquinas)
   who(maquinas, "p", "")
 end
 
+# COMANDO S
 def s(maquinas, comando)
   #ejecutar comando remoto mediante ssh en todo el conjunto de máquinas
   who(maquinas, "s", comando)
+end
+
+# COMANDO C
+def c(maquinas, manifiesto)
+  puts "> Creando arhivos temporales..."
+  who(maquinas, "c", manifiesto)
+  puts "> Borrando archivos temporales..."
+  who(maquinas, "c_clean", manifiesto)
 end
 
 #####################################
@@ -108,15 +161,18 @@ end
 #Primero cojer las opciones posibles
 option = ARGV[0]
 
-if option == "s" || option == "p"
+if option == "s" || option == "p" || option == "c"
   # Comando para todas las maquinas.
   if option == "p"
     # Comando p
     p("all")
   elsif option == "s"
-    # Comando case
+    # Comando s
     # Tomar el comando a realizar mediante ssh del 2º parametro
     s("all", ARGV[1])
+  else
+    # Comando c
+    c("all", ARGV[1])
   end
 else
   # Comando para un GRUPO o una maquina en concreto
@@ -125,29 +181,7 @@ else
     p(option)
   elsif option_1 == "s"
     s(option, ARGV[2])
+  elsif option_1 == "c"
+    c(option, ARGV[2])
   end
 end
-
-=begin
-if option != "p" && option != "s"
-  #Comandos no validos
-  puts "Opcion no valida."
-  puts "Uso: ./u.rb [p|c SHELL_COMMAND]"
-elsif option == "s" && ARGV.length != 2
-  # Comando "c" pero sin SHELL_COMMAND
-    puts "Argument missing"
-    puts "Uso: ./u.rb c SHELL_COMMAND"
-else
-  #Caso que todo esta bien
-  if File.exists?(ENV['HOME'] + '/.u/hosts')
-    if option == "p"
-      p
-    else
-      comando = ARGV[1]
-      c comando
-    end
-  else
-    puts "Archivo ~/.u/hosts no encontrado"
-  end
-end
-=end
