@@ -18,7 +18,9 @@ Estado actual de directorios:
         └── resolv.conf.erb
 
 > Para poder usar el directorio `~/.u` se ha utilizado `ENV['HOME'] + '/.u'`.
+
 > `ENV['HOME']`  devuelve variable de entorno `$HOME` de cada usuario.
+
 > Para ver las posibles variables de entorno, ejecutar en el terminal: `env`.
 
 ## Uso
@@ -45,16 +47,12 @@ Sintaxis general:
     ```
     
     - En caso de no poner nada, el comando se ejecutará en todas las máquinas del fichero `~/.u/hosts`.
-
-**Ping al puerto 22** -> `./u [maquina|conjunto de maquinas] p`
-
-**Mandar comando mediante ssh** -> `./u [maquina|conjunto de maquinas] s comando`
-
-- `comando` es la instrucción que se desea mandar a las máquinas.
-
-**Aplicar un manifiesto puppet** -> `./u [maquina|conjunto de maquinas] c manifiesto`
-
-- `manifiesto` debe existir en `~/.u/manifiestos/`
+    
+ **Subcomandos de u**
+ 
+ - `p`  Ping al puerto 22 de las máquinas.
+ - `s command` Mandar un comando mediante ssh a las máquinas. `command` es de tipo `Str`.
+ - `c manifest` Aplicar un manifiesto de puppet a las máquinas. El manifiesto debe existir en `~/.u/manifiestos/`.
 
 ## Funcionamiento general de la aplicación
 
