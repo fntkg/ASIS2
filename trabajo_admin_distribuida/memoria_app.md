@@ -3,7 +3,9 @@
 Como usar:
 
 Los ficheros de configuración se encuentran en `~/.u`
+
 El conjunto de maquinas se especifica en `~/.u/hosts`
+
 Los manifiestos disponibles se encuentran en `~/.u/manifiestos/`
 
 Estado actual de directorios:
@@ -15,11 +17,9 @@ Estado actual de directorios:
         ├── ntp_cliente.pp
         └── resolv.conf.erb
 
-:::info
-Para poder usar el directorio `~/.u` se ha utilizado `ENV['HOME'] + '/.u'`.
-`ENV['HOME']`  devuelve variable de entorno `$HOME` de cada usuario.
-Para ver las posibles variables de entorno, ejecutar en el terminal: `env`.
-:::
+> Para poder usar el directorio `~/.u` se ha utilizado `ENV['HOME'] + '/.u'`.
+> `ENV['HOME']`  devuelve variable de entorno `$HOME` de cada usuario.
+> Para ver las posibles variables de entorno, ejecutar en el terminal: `env`.
 
 ## Uso
 
