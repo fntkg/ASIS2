@@ -84,7 +84,8 @@ ssh.exec!(comando)
 > Comandos principales usados
 
 
-Para el comando `s MANIFIESTO` se ha usado la biblioteca `net/scp` y se ha dado uso de la función creada para mandar comandos vía `ssh`.
+Para el comando `c MANIFIESTO` se ha usado la biblioteca `net/scp` y se ha dado uso de la función creada para mandar comandos vía `ssh`.
+
 `SCP` se ha usado para poder copiar el manifiesto de puppet en las máquinas remotas.
 ```ruby
 Net::SCP.upload!(direccion, "a757024",
