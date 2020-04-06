@@ -26,6 +26,7 @@ def ssh(direccion, command)
   check = Net::Ping::External.new(direccion, 22, 0.1)
   if check.ping?
     Net::SSH.start(direccion, 'a757024', password: "Egdxwa") do |ssh|
+      # Enviar comando @command
       output = ssh.exec!(command)
       puts direccion + ": exito"
       puts output
@@ -54,6 +55,14 @@ def aplicar_manifiesto(direccion, manifiesto)
       Net::SCP.upload!(direccion, "a757024",
           "#{ENV['HOME']}/.u/manifiestos/#{manifiesto}", "/home/a757024",
             :ssh => { :password => "Egdxwa" })
+            # Copiar PLANTILLA resolv.conf si el MANIFIESTO ES "DNS_CLIENTE.PP"
+            if manifiesto == "dns_cliente.pp"
+              Net::SCP.upload!(direccion, "a757024",
+                "#{ENV['HOME']}/.u/manifiestos/resolv.conf.erb", "/home/a757024",
+                  :ssh => { :password => "Egdxwa" })
+            end
+            # Aplicar manifiesto
+            ssh(direccion, "puppet #{manifiesto}") # Mandar por ssh el comando.
     end
   else
     puts direccion + ": falla"
@@ -61,10 +70,14 @@ def aplicar_manifiesto(direccion, manifiesto)
   end
 end
 
-def check_manifiesto(direccion, manifiesto)
+def rm_temp_manifiesto(direccion, manifiesto)
   ssh(direccion, "rm /home/a757024/#{manifiesto}")
+  ssh(direccion, "rm /home/a757024/resolv.conf.erb")
 end
 
+#####################################
+#   Funcion recorrer ~/.u/hosts     #
+#####################################
 
 # @who = a quien mandar el comando @comando
 # @comando = puede ser "p", "s" o "c"
@@ -83,7 +96,7 @@ def who(who, comando, command)
       elsif comando == "c"
         aplicar_manifiesto(direccion, command)
       elsif comando == "c_clean"
-        check_manifiesto(direccion, command)
+        rm_temp_manifiesto(direccion, command)
       end
     end
   else
@@ -112,7 +125,7 @@ def who(who, comando, command)
               elsif comando == "c"
                 aplicar_manifiesto(direccion, command)
               elsif comando == "c_clean"
-                check_manifiesto(direccion, command)
+                rm_temp_manifiesto(direccion, command)
               end
             end
             # Si hay llamadas a otros grupos
@@ -128,12 +141,15 @@ def who(who, comando, command)
       elsif comando == "c"
         aplicar_manifiesto(who, command)
       elsif comando == "c_clean"
-        check_manifiesto(who, command)
+        rm_temp_manifiesto(who, command)
       end
     end
   end
 end
 
+#####################################
+#   Funciones COMANDOS principales  #
+#####################################
 
 # COMANDO P
 def p(maquinas)
