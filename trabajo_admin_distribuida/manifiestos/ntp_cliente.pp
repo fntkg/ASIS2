@@ -2,6 +2,6 @@
 
 node default {
   class { 'ntp':
-        servers => ['2001:470:0:50::2','2001:470:0:2c8::2']
+        servers => ['2001:470:736b:7ff::2']
   }
 }
