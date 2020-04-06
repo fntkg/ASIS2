@@ -1,4 +1,5 @@
 # Aplicación administración distribuida
+> German Garces - 757024
 
 Como usar:
 
@@ -25,31 +26,31 @@ Estado actual de directorios:
 
 ## Uso
 
-Sintaxis general: 
+Sintaxis general:
     `./u [maquina_o_grupo_de_maquinas] subcomando_de_u [parametro de subcomando]`
-    
+
 - El `conjunto de maquinas` debe estar especificado en `~/.u/hosts` con el siguiente formato:
 
     Un nuevo grupo se define con el caracter `-` y la secuencia de direcciones `IP` o `DNS` que se deseen.
     Se pueden incluir grupos definidos anteriormente con el cáracter `+`.
-    
+
     ```
     -clientes_dns
     2001:470:736b:7ff::2
     2001:470:736b:7fe::6
-    
+
     -clientes_ntp
     2001:470:736b:7ff::1
-    
+
     -servidores_dns
     +clientes_dns
     cps.central.unizar.es
     ```
-    
-    - En caso de no poner nada, el comando se ejecutará en todas las máquinas del fichero `~/.u/hosts`.
-    
+
+- En caso de no poner nada, el comando se ejecutará en todas las máquinas del fichero `~/.u/hosts`.
+
  **Subcomandos de u**
- 
+
  - `p`  Ping al puerto 22 de las máquinas.
  - `s command` Mandar un comando mediante ssh a las máquinas. `command` es de tipo `Str`.
  - `c manifest` Aplicar un manifiesto de puppet a las máquinas. El manifiesto debe existir en `~/.u/manifiestos/`.
@@ -62,10 +63,10 @@ Esquema de la aplicación:
 
 - Funciones `p(maquinas)`,`s(maquinas, comando)`,`c(maquinas, manifiesto)`:
     - Su función es llamar a la función `who(who, comando, command)`.
-    
+
 - Función `who(who, comando, command`:
     - Recorre el archivo `~/.u/hosts` y usa las máquinas que se le indican en los parametros del programa. Para cada máquina objetivo, llama a la función necesaria (`ping(direccion)`,`ssh(direccion, command)`,`aplicar_manifiesto(direccion, manifiesto)`)
-    
+
 - El resto de funciones se encargan de ejecutar la orden adecuada para cada máquina.
 
 Para el comando `p` se ha usado la biblioteca `net/ping`.
@@ -92,3 +93,5 @@ Net::SCP.upload!(direccion, "a757024",
 ```
 
 > Comandos principales usados
+
+Para la creación del manifiesto `dns_cliente.pp` se ha requerido de la creación de una plantilla `resolv.conf.erb` la cual se encarga de establecer el formato del fichero `/etc/resolv.con` de las máquinas.
