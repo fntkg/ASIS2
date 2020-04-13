@@ -1,7 +1,8 @@
 #!/usr/bin/env ruby
 ## chmod a+x u.rb
 
-#!/usr/bin/ruby
+## Para ejecutar desde mi ordenador
+## !/usr/bin/ruby
 
 require 'net/ping'
 require 'net/ssh'
@@ -62,7 +63,7 @@ def aplicar_manifiesto(direccion, manifiesto)
                   :ssh => { :password => "Egdxwa" })
             end
             # Aplicar manifiesto
-            ssh(direccion, "puppet #{manifiesto}") # Mandar por ssh el comando.
+            ssh(direccion, "puppet apply #{manifiesto}") # Mandar por ssh el comando.
     end
   else
     puts direccion + ": falla"
