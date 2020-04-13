@@ -1,8 +1,7 @@
-#!/usr/bin/ruby
-
-# Para los ordenadores del laboratorio:
-## #!/usr/bin/env ruby
+#!/usr/bin/env ruby
 ## chmod a+x u.rb
+
+#!/usr/bin/ruby
 
 require 'net/ping'
 require 'net/ssh'
