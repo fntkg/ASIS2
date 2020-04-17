@@ -31,7 +31,7 @@ def ssh(direccion, command)
     Net::SSH.start(direccion, 'a757024', password: "Egdxwa") do |ssh|
       # Enviar comando @command
       output = ssh.exec!(command)
-      result = direccion + ": exito\n"  + output + "ERROR GARRAFAL"
+      result = direccion + ": exito\n"  + output
     end
   else
     result = direccion + ": falla\n"
@@ -63,7 +63,12 @@ def aplicar_manifiesto(direccion, manifiesto)
                   :ssh => { :password => "Egdxwa" })
             end
             # Aplicar manifiesto
-            ssh(direccion, "puppet apply #{manifiesto}") # Mandar por ssh el comando.
+            # OJO, MAQUINAS OPENBSD O UBUNTU
+            if (manifiesto[-1,1] == 5 || manifesto[-1,1] == 6)
+              puts ssh(direccion, "sudo puppet apply #{manifiesto}")
+            else
+              ssh(direccion, "doas puppet apply #{manifiesto}") # Mandar por ssh el comando.
+            end
     end
   else
     puts direccion + ": falla"
