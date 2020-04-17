@@ -14,8 +14,8 @@ require 'net/scp'
 
 def ping(direccion)
   result = ""
-  check = Net::Ping::External.new(direccion, 22, 0.1)
-  if check.ping?
+  check = Net::Ping::External.new(direccion, 22, 0.1).ping6
+  if check
     result = direccion + ": FUNCIONA\n"
   else
     result =  direccion + ": falla\n"
@@ -26,8 +26,8 @@ end
 def ssh(direccion, command)
   result = ""
   # Para evitar timeouts y excepciones se hace PING antes de ssh.
-  check = Net::Ping::External.new(direccion, 22, 0.1)
-  if check.ping?
+  check = Net::Ping::External.new(direccion, 22, 0.1).ping6
+  if check
     Net::SSH.start(direccion, 'a757024', password: "Egdxwa") do |ssh|
       # Enviar comando @command
       output = ssh.exec!(command)
@@ -45,8 +45,8 @@ def aplicar_manifiesto(direccion, manifiesto)
   puts
   # Copiar archivo #[manifiesto] en maquina remota
   output = ""
-  check = Net::Ping::External.new(direccion, 22, 0.1)
-  if check.ping?
+  check = Net::Ping::External.new(direccion, 22, 0.1).ping6
+  if check
     # Comprobar que no existe ya el fichero
     Net::SSH.start(direccion, 'a757024', password: "Egdxwa") do |ssh|
       output = ssh.exec!("ls | grep #{manifiesto}")
@@ -87,7 +87,7 @@ end
 
 # @who = a quien mandar el comando @comando
 # @comando = puede ser "p", "s" o "c"
-# @command = comando pasado cuando @comando es "s" O manifiesto cuando @comando es "c"
+# @command6 = comando pasado cuando @comando es "s" O manifiesto cuando @comando es "c"
 def who(who, comando, command)
   result = ""
   if who == "all"
