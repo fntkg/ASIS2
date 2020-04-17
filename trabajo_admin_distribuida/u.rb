@@ -67,7 +67,7 @@ def aplicar_manifiesto(direccion, manifiesto)
             if (manifiesto[-1,1] == 5 || manifesto[-1,1] == 6)
               puts ssh(direccion, "sudo puppet apply #{manifiesto}")
             else
-              ssh(direccion, "doas puppet apply #{manifiesto}") # Mandar por ssh el comando.
+              puts ssh(direccion, "doas puppet apply #{manifiesto}") # Mandar por ssh el comando.
             end
     end
   else
