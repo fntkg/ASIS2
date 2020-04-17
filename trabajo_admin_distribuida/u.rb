@@ -64,6 +64,7 @@ def aplicar_manifiesto(direccion, manifiesto)
             end
             # Aplicar manifiesto
             # OJO, MAQUINAS OPENBSD O UBUNTU
+            puts "MAQUINA A CAGAR: #{manifiesto[-1,1]}"
             if (manifiesto.slice(-1,1) == "5" || manifiesto.slice(-1,1) == "6")
               puts ssh(direccion, "sudo puppet apply #{manifiesto}")
             else
