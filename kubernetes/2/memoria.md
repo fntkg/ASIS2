@@ -21,7 +21,7 @@ El manifiesto `operator.yaml` se encarga de poner en marcha `rook`.
 
 El manifiesto `cluster.yaml` se encarga de desplegar ceph en los nodos (como mínimo requiere 3 nodos):
 
-```bash
+```ruby
 dataDirHostPath: /var/lib/rook # Establece donde se almacenarán los ficheros de configuración de ceph
 
 mon: # Establece el numero de monitores, en este caso uno por nodo
@@ -35,7 +35,7 @@ storage: # cluster level storage configuration and selection
 
 Comprobación de `ceph`, en el siguiente fragmento de codigo se ven los 3 `OSD`, el manager, los 3 monitores y el `quorum`
 
-```bash
+```ruby
 > ceph status
   ...
   services:
