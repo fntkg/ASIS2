@@ -8,7 +8,7 @@
 Editar fichero `Vagrantfile`.
 
 ```bash
-vagran up
+vagrant up
 ```
 
 **#2** Puesta en marcha de `rook-ceph`.
