@@ -35,8 +35,8 @@ storage: # cluster level storage configuration and selection
 
 Comprobación de `ceph`, en el siguiente fragmento de codigo se ven los 3 `OSD`, el manager, los 3 monitores y el `quorum`
 
-```ruby
-> ceph status
+```bash
+$ ceph status
   ...
   services:
     mon: 3 daemons, quorum a,b,c (age 24m)
