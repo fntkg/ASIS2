@@ -1,25 +1,31 @@
 # kubernetes
 
+> Germán Garcés | Duración proyecto: 3h
 
 ## [Etapa inicial] Puesta en marcha básica de Ceph en Kubernetes.
 
-**#1** Puesta en marcha de kubernets.
+**`common.yaml`**
 
-Editar fichero `Vagrantfile`.
+Sse encarga de crear los recursos necesarios para, posteriormente, desplegar `ceph` y el operador `rook`. Esto lo realiza creando `CustomResourceDefinition` es decir, recursos personalizados para la situación.
 
-```bash
-vagrant up
+También crea el espacio de nombres `rook-ceph`.
+
+**`operator.yaml`**
+
+Se encarga de poner en marcha `rook`.
+
+```ruby
+apiVersion: v1
+kind: Namespace
+metadata:
+  name: rook-ceph
 ```
 
-**#2** Puesta en marcha de `rook-ceph`.
+Se ha estudiado la documentación oficial y se ha visto la utilidad de los recursos `ConfigMap`: "A ConfigMap is an API object used to store non-confidential data in key-value pairs. A ConfigMap allows you to decouple environment-specific configuration from your container images , so that your applications are easily portable.".
 
-El manifiesto `common.yaml` se encarga de crear los recursos necesarios para, posteriormente, desplegar `ceph` y el operador `rook`. También crea el espacio de nombres `rook-ceph`.
+**`cluster.yaml`**
 
-> Como operador entiendo que se refiere al recurso que se encarga de gestionar `ceph` en este caso.
-
-El manifiesto `operator.yaml` se encarga de poner en marcha `rook`.
-
-El manifiesto `cluster.yaml` se encarga de desplegar ceph en los nodos (como mínimo requiere 3 nodos):
+Se encarga de desplegar ceph en los nodos (como mínimo requiere 3 nodos):
 
 ```ruby
 dataDirHostPath: /var/lib/rook # Establece donde se almacenarán los ficheros de configuración de ceph
@@ -33,9 +39,10 @@ storage: # cluster level storage configuration and selection
   useAllDevices: true
 ```
 
-Comprobación de `ceph`, en el siguiente fragmento de codigo se ven los 3 `OSD`, el manager, los 3 monitores y el `quorum`
+**Comprobar despliegue de `ceph`**
 
 ```bash
+[ger@archlinux]$ kubectl   -n   rook-ceph   exec   -it   $(kubectl   -n   rook-ceph   get   pod   -l   "app=rook-ceph-tools"   -o   \jsonpath='{.items[0].metadata.name}') bash
 $ ceph status
   ...
   services:
@@ -44,3 +51,11 @@ $ ceph status
     osd: 3 osds: 3 up (since 22m), 3 in (since 22m)
   ...
 ```
+
+En el fragmento de codigo se ven los 3 `OSD`, el manager, los 3 monitores y el `quorum`
+
+## [Etapa 2] Aplicación web y almacenamiento distribuidos de dispositivos de bloques
+
+**`storageclassRbdBlock.yaml`**
+
+Se crea un recurso `CephBlockPool`, es uno de los `CustomResourceDefinition` definidos anteriormente.
