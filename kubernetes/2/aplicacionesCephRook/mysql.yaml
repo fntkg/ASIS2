@@ -19,7 +19,7 @@ metadata:
   labels:
     app: wordpress
 spec:
-  storageClassName: ???????
+  storageClassName: rook-ceph-block
   accessModes:
   - ReadWriteOnce
   resources:
@@ -56,9 +56,9 @@ spec:
         - containerPort: 3306
           name: mysql
         volumeMounts:
-        - name: ????????
+        - name: mysql-persistent-storage
           mountPath: /var/lib/mysql
       volumes:
       - name: mysql-persistent-storage
         persistentVolumeClaim:
-          claimName: ?????
+          claimName: mysql-pv-claim

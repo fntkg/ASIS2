@@ -58,4 +58,22 @@ En el fragmento de codigo se ven los 3 `OSD`, el manager, los 3 monitores y el `
 
 **`storageclassRbdBlock.yaml`**
 
-Se crea un recurso `CephBlockPool`, es uno de los `CustomResourceDefinition` definidos anteriormente.
+Se crea un recurso `CephBlockPool`, es uno de los `CustomResourceDefinition` definidos anteriormente. Se establecen 3 réplicas.
+
+Se crea un recurso `StorageClass` y se establecen los secretos que contienen las credenciales del administrador y la política del recurso `Delete`. También se establece el pool en el que se va a encontrar esta unidad de almacenamiento `replicapool`.
+
+**`mysql.yaml`**
+
+Se ha usado `mysql-persistent-storage` como volumen para `wordpress-mysql`.
+
+**`wordpress.yaml`**
+
+Se ha establecido en el `PersistentVolumeClaim` lo siguiente:
+
+```
+storageClassName: rook-ceph-block
+```
+
+---
+
+Problema encontrado y su solución: Ambos servicios `mysql` y `wordpress` se quedaban en un estado `pending`. Se llegó a la conclusión de que era por iniciar ambos servicios a la vez ya que no conseguína resolver las dependencias. Se solucionó dejando un espacio mayor entre despliegue y despliegue de cualquier `pod`.
