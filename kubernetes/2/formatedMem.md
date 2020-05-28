@@ -18,11 +18,13 @@ Los 3 nodos necesarios es debido a que, según la documentación oficial de `Roo
 
 Se han desplegado también 2 servicios `mysql-pv-claim` y `wp-pv-claim` para hacer uso de `rook-ceph`.
 
+Para la creación de los repositorios, se ha desplegado un sistema de ficheros `ceph` con 3 réplicas para el pool de metadatos y 3 replicas para el pool de datos
+
 ## Explicación de las diferentes aplicaciones desplegadas sobre Kubernetes con la explicación de los conceptos y  los recursos Kubernetes utilizados y explicación básica de los conceptos y recursos utilizados porCeph.
 
 **`common.yaml`**
 
-Sse encarga de crear los recursos necesarios para, posteriormente, desplegar `ceph` y el operador `rook`. Esto lo realiza creando `CustomResourceDefinition` es decir, recursos personalizados para la situación.
+Se encarga de crear los recursos necesarios para, posteriormente, desplegar `ceph` y el operador `rook`. Esto lo realiza creando `CustomResourceDefinition` es decir, recursos personalizados para la situación.
 
 También crea el espacio de nombres `rook-ceph`.
 
@@ -69,9 +71,17 @@ Se ha usado `mysql-persistent-storage` como volumen para `wordpress-mysql`.
 
 Se ha establecido en el `PersistentVolumeClaim` lo siguiente: `storageClassName: rook-ceph-block`
 
+**`kube-registry.yaml`**
+
+Se ha establecido el volumen `storageClassName:rook-cephfs`.
+
+También se ha establecido su volumen con el nombre del `persistentVolumeClaim`: `cephfs-pvc`.
+
+
+
 ## Explicación de los métodos utilizados para la validación de la operativa.
 
-Cada elemento que se creaba en kubernetes, no se pasaba al siguiente paso hasta que todos los `pods` del recurso estuvieran en el estado `Running`.
+Cada elemento que se creaba en kubernetes, no se pasaba al siguiente paso hasta que todos los `pods` del recurso en cuestión 	estuvieran en estado `Running`.
 
 Para comprobar el despliegue de `rook` y `ceph` se siguieron los pasos indicados en el enunciado del trabajo y se comprobaron que estuvieran los 3 monitores, el gestor y los 3 demonios en funcionamiento:
 
@@ -86,6 +96,30 @@ $ ceph status
 ```
 
 Para comprobar el estado de `wordpress` simplemente se usó un explorador en la máquina host y se accedió a esta.
+
+Al desplegar el sistema de ficheros, se repitió los pasos anteriores y se vió que se había añadido un servicio a `ceph` llamado `myfs`, es decir, el sistema de fichero
+
+```bash
+$ ceph status
+	...
+	services:
+    	mon: 3 daemons, quorum a,b,c (age 6m)
+    	mgr: a(active, since 11m)
+    	mds: myfs:1 {0=myfs-a=up:active} 1 up:standby-replay
+    	osd: 3 osds: 3 up (since 6m), 3 in (since 11m)
+    ...
+```
+
+Para comprobar el correcto despliegue del repositorio, se ha realizado el port-forwarding indicado en el enunciado y se ha comprobado que no da error al acceder al puerto 5000:
+
+```python
+[ger@archlinux aplicacionesCephRook]$ python
+>>> import requests
+>>> r=requests.get("http://localhost:5000")
+Handling connection for 5000
+>>> print(r.status_code)
+200
+```
 
 ## Problemas encontrados y su solución.
 

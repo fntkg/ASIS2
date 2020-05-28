@@ -9,7 +9,7 @@ spec:
   resources:
     requests:
       storage: 1Gi
-  storageClassName: ?????
+  storageClassName: rook-cephfs
 ---
 apiVersion: apps/v1
 kind: Deployment
@@ -47,7 +47,7 @@ spec:
         - name: REGISTRY_STORAGE_FILESYSTEM_ROOTDIRECTORY
           value: /var/lib/registry
         volumeMounts:
-        - name: ???????
+        - name: image-store
           mountPath: /var/lib/registry
         ports:
         - containerPort: 5000
@@ -64,5 +64,5 @@ spec:
       volumes:
       - name: image-store
         persistentVolumeClaim:
-          claimName: ???????
+          claimName: cephfs-pvc
           readOnly: false
