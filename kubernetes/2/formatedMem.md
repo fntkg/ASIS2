@@ -116,11 +116,46 @@ Para comprobar el correcto despliegue del repositorio, se ha realizado el port-f
 [ger@archlinux aplicacionesCephRook]$ python
 >>> import requests
 >>> r=requests.get("http://localhost:5000")
-Handling connection for 5000
 >>> print(r.status_code)
 200
 ```
 
+Para comprobar el funcionamiento del repositorio, se accedió a al sistema de ficheros `ceph` y se crearon varios archivos y directorios. Tras eso, se desmontó y se volvió a montar en otra máquina distinta y se vio que se mantenían los elementos creados anteriormente.
+
+Para probar el funcionamiento correcto de la replicación, se hizo un `vagrant destroy w3` (la máquina que no contaba con el `mgr`, ni el DNS ni el de metricas) y se trató de accecer a `localhost:5000`. Se tuvo éxito, la operación de tipo `GET` devolvió un código de estado `200`.
+
 ## Problemas encontrados y su solución.
 
 Se creó un script para automatizar el arranque de todo pero los recursos no se desplegaban de manera correcta debido a la falta de tiempo entre instrucciones. Por falta de tiempo se decidió hacer dicho despliegue de manera manual.
+
+Al subir la imagen al repositorio, la instrucción `podman push` no daba ningún error. Sin embargo, ninguna imagen era subida. No se ha encontrado solución.
+
+```bash
+[ger@archlinux vagrantk3s]$ sudo podman pull bash:latest
+# Todo correcto
+[ger@archlinux vagrantk3s]$ sudo podman push --tls-verify=false 330fdabba8e4 localhost:5000/me/prueba:latest
+Getting image source signatures
+Handling connection for 5000
+Handling connection for 5000
+Handling connection for 5000
+Handling connection for 5000
+Handling connection for 5000
+Handling connection for 5000
+Handling connection for 5000
+Handling connection for 5000
+Copying blob eaee9bd0a424 skipped: already exists  
+Copying blob 3e207b409db3 skipped: already exists  
+Copying blob 597dbfcdb2e8 [--------------------------------------] 0.0b / 0.0b
+Handling connection for 5000
+Writing manifest to image destination
+Handling connection for 5000
+Storing signatures
+```
+
+```bash
+[ger@archlinux vagrantk3s]$ kubectl run --generator=run-pod/v1 -i --tty p --image=localhost:5000/user/container  -- sh
+#Se queda colgado, abro otra terminal y ejecuto lo siguiente
+[ger@archlinux vagrantk3s]$ kubectl describe pod p
+NAME                    READY     STATUS             RESTARTS   AGE
+p                        0/1    ImagePullBackOff        0       52m
+```
