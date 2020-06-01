@@ -1,5 +1,7 @@
 # kubernetes 2/3
 
+> Germán Garcés | 757024
+
 ## Resumen
 
 En esta 2a parte del trabajo se ha comprendido como poner en marcha un clúster de almacenamiento `CEPH` y un gestor para este, `ROOK`.
