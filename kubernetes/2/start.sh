@@ -38,3 +38,6 @@ kubectl port-forward --namespace kube-system $POD 5000:5000 &
 ## Subir un contenedor al nuevo repositorio
 sudo podman pull bash
 sudo podman push --tls-verify=false 330fdabba8e4 localhost:5000/me/prueba:latest
+
+## Ejecutar el contenedor recien subido
+kubectl run --generator=run-pod/v1 -i --tty p --image=localhost:5000/user/container  -- sh
